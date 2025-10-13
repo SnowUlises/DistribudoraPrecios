@@ -47,7 +47,6 @@
       object-fit: contain;
     }
     .wrap {
-      max-width: 1200px;
       margin: 28px auto;
       padding: 0 20px;
     }
@@ -97,12 +96,12 @@
       display: grid;
       gap: 18px;
     }
-    .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-    .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-    .grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
-    .grid.cols-6 { grid-template-columns: repeat(6, 1fr); }
-    .grid.cols-7 { grid-template-columns: repeat(7, 1fr); }
-    .grid.cols-8 { grid-template-columns: repeat(8, 1fr); }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid.cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .grid.cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .grid.cols-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .grid.cols-8 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
     .card {
       background: var(--card);
       border-radius: 14px;
@@ -469,60 +468,4 @@
       let list = PRODUCTS.slice();
       if(currentCategory && currentCategory !== 'Todas'){
         list = list.filter(p =>
-          (p.categoria || '').toLowerCase().includes(currentCategory.toLowerCase())
-        );
-      }
-      if(q){
-        list = list.filter(p =>
-          (p.nombre || '').toLowerCase().includes(q)
-        );
-      }
-      renderProducts(list);
-    }
-    searchInput.addEventListener('input', applyFilters);
-    // --- LOAD DATA -----------------------------------------------------------
-   async function load() {
-  try {
-    const step = 1000;
-    let from = 0;
-    let all = [];
-    let done = false;
-
-    while (!done) {
-      const { data, error } = await supa
-        .from('productos')
-        .select('*')
-        .order('id', { ascending: true })
-        .range(from, from + step - 1);
-
-      if (error) throw error;
-      if (!data.length) done = true;
-      else {
-        all = all.concat(data);
-        from += step;
-      }
-    }
-
-    PRODUCTS = all.map(p => ({
-      id: p.id ?? null,
-      nombre: p.nombre ?? '',
-      precio: parsePrice(p.precio),
-      categoria: p.categoria ?? '',
-      stock: p.stock ?? 0,
-      imagen: p.imagen ?? ''
-    }));
-    grid.className = `grid cols-${currentCols}`;
-    buildCategoryMenu();
-    buildColsMenu();
-    updateColsToggle();
-    applyFilters();
-  } catch (e) {
-    console.error('❌ Error al cargar productos:', e);
-    empty.style.display = 'block';
-  }
-}
-
-    load();
-  </script>
-</body>
-</html>
+          (p.categoria |
