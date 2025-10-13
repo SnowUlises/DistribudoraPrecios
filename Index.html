@@ -95,14 +95,17 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
       gap: 18px;
     }
-    @media (max-width:1000px) {
-      .grid { grid-template-columns: repeat(3,1fr); }
+    .grid.cols-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .grid.cols-4 {
+      grid-template-columns: repeat(4, 1fr);
     }
     @media (max-width:700px) {
-      .grid { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-3 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-4 { grid-template-columns: repeat(3,1fr); }
     }
     .card {
       background: var(--card);
@@ -237,6 +240,7 @@
       <div class="search">
         <input id="search" placeholder="Buscar producto..." />
       </div>
+      <button id="toggleCols" class="cat-btn">Más por fila</button>
       <div class="cat-wrapper" style="position:relative;">
         <div class="dropdown">
           <button id="catToggle" class="cat-toggle" aria-expanded="false" aria-haspopup="true">
@@ -274,6 +278,7 @@
     const categoriesMenu = document.getElementById('categoriesMenu');
     const catToggle = document.getElementById('catToggle');
     const searchInput = document.getElementById('search');
+    const toggleCols = document.getElementById('toggleCols');
     // --- HELPERS -------------------------------------------------------------
     function parsePrice(v){
       if (v === null || v === undefined) return 0;
@@ -400,6 +405,18 @@
       renderProducts(list);
     }
     searchInput.addEventListener('input', applyFilters);
+    // --- TOGGLE COLUMNS ------------------------------------------------------
+    toggleCols.addEventListener('click', () => {
+      if (grid.classList.contains('cols-3')) {
+        grid.classList.remove('cols-3');
+        grid.classList.add('cols-4');
+        toggleCols.textContent = 'Menos por fila';
+      } else {
+        grid.classList.remove('cols-4');
+        grid.classList.add('cols-3');
+        toggleCols.textContent = 'Más por fila';
+      }
+    });
     // --- LOAD DATA -----------------------------------------------------------
    async function load() {
   try {
@@ -431,7 +448,7 @@
       stock: p.stock ?? 0,
       imagen: p.imagen ?? ''
     }));
-
+    grid.classList.add('cols-3');
     buildCategoryMenu();
     applyFilters();
   } catch (e) {
@@ -444,12 +461,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
