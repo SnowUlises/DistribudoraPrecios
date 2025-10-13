@@ -103,6 +103,20 @@
     .grid.cols-6 { grid-template-columns: repeat(6, 1fr); }
     .grid.cols-7 { grid-template-columns: repeat(7, 1fr); }
     .grid.cols-8 { grid-template-columns: repeat(8, 1fr); }
+    @media (max-width:1000px) {
+      .grid.cols-5 { grid-template-columns: repeat(4,1fr); }
+      .grid.cols-6 { grid-template-columns: repeat(4,1fr); }
+      .grid.cols-7 { grid-template-columns: repeat(4,1fr); }
+      .grid.cols-8 { grid-template-columns: repeat(4,1fr); }
+    }
+    @media (max-width:700px) {
+      .grid.cols-3 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-4 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-5 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-6 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-7 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-8 { grid-template-columns: repeat(2,1fr); }
+    }
     .card {
       background: var(--card);
       border-radius: 14px;
@@ -214,6 +228,27 @@
       box-shadow: 0 6px 18px rgba(7,50,14,0.06);
     }
     /* --------------------------------------------------------------- */
+    @media (max-width: 600px) {
+      .topbar {
+        flex-wrap: wrap;
+      }
+      .search {
+        order: 0;
+        flex-basis: 100%;
+      }
+      .search input {
+        min-width: 0;
+        width: 100%;
+      }
+      .cols-wrapper {
+        order: 1;
+        margin-left: 0;
+      }
+      .cat-wrapper {
+        order: 2;
+        margin-left: auto;
+      }
+    }
   </style>
 </head>
 <body>
