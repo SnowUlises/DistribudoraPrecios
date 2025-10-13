@@ -97,15 +97,25 @@
       display: grid;
       gap: 18px;
     }
-    .grid.cols-3 {
-      grid-template-columns: repeat(3, 1fr);
-    }
-    .grid.cols-4 {
-      grid-template-columns: repeat(4, 1fr);
+    .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
+    .grid.cols-6 { grid-template-columns: repeat(6, 1fr); }
+    .grid.cols-7 { grid-template-columns: repeat(7, 1fr); }
+    .grid.cols-8 { grid-template-columns: repeat(8, 1fr); }
+    @media (max-width:1000px) {
+      .grid.cols-5 { grid-template-columns: repeat(4,1fr); }
+      .grid.cols-6 { grid-template-columns: repeat(4,1fr); }
+      .grid.cols-7 { grid-template-columns: repeat(4,1fr); }
+      .grid.cols-8 { grid-template-columns: repeat(4,1fr); }
     }
     @media (max-width:700px) {
       .grid.cols-3 { grid-template-columns: repeat(2,1fr); }
-      .grid.cols-4 { grid-template-columns: repeat(3,1fr); }
+      .grid.cols-4 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-5 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-6 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-7 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-8 { grid-template-columns: repeat(2,1fr); }
     }
     .card {
       background: var(--card);
@@ -235,13 +245,18 @@
     </div>
   </header>
   <main class="wrap">
-    <!-- TOPBAR: buscador + dropdown de categorias -->
+    <!-- TOPBAR: buscador + selector de columnas + dropdown de categorias -->
     <div class="topbar">
       <div class="search">
         <input id="search" placeholder="Buscar producto..." />
       </div>
-      <button id="toggleCols" class="cat-btn">Más por fila</button>
-      <div class="cat-wrapper" style="position:relative;">
+      <div class="cols-wrapper" style="position:relative; flex-shrink: 0;">
+        <button id="colsToggle" class="cat-toggle" aria-expanded="false" aria-haspopup="true">
+          Columnas: 3 ▾
+        </button>
+        <ul id="colsMenu" class="cat-menu" hidden role="menu" aria-labelledby="colsToggle"></ul>
+      </div>
+      <div class="cat-wrapper" style="position:relative; flex-shrink: 0;">
         <div class="dropdown">
           <button id="catToggle" class="cat-toggle" aria-expanded="false" aria-haspopup="true">
             Categorías ▾
@@ -271,14 +286,17 @@
       "PAPELES Y BOLSAS", "PEGAMENTOS", "PERFUMERIA", "REPELENTES", "ACCESORIOS",
       "SHAMPO Y ENJUAGUE", "TINTURAS NANTYR"
     ];
+    const COL_OPTIONS = [3,4,5,6,7,8];
     let PRODUCTS = [];
     let currentCategory = 'Todas';
+    let currentCols = 3;
     const empty = document.getElementById('empty');
     const grid = document.getElementById('grid');
     const categoriesMenu = document.getElementById('categoriesMenu');
     const catToggle = document.getElementById('catToggle');
+    const colsMenu = document.getElementById('colsMenu');
+    const colsToggle = document.getElementById('colsToggle');
     const searchInput = document.getElementById('search');
-    const toggleCols = document.getElementById('toggleCols');
     // --- HELPERS -------------------------------------------------------------
     function parsePrice(v){
       if (v === null || v === undefined) return 0;
@@ -302,7 +320,7 @@
       if(!path) return 'imagenes/placeholder.png';
       return path.startsWith('/') ? path.slice(1) : path;
     }
-    // --- BUILD dropdown menu -----------------------------------------------
+    // --- BUILD category menu -----------------------------------------------
     function buildCategoryMenu(){
       categoriesMenu.innerHTML = '';
       FIXED_CATEGORIES.forEach(cat => {
@@ -314,21 +332,20 @@
         btn.onclick = (e) => {
           e.stopPropagation();
           currentCategory = cat;
-          // actualizar clases
           categoriesMenu.querySelectorAll('button').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           applyFilters();
-          closeMenu();
+          closeCatMenu();
         };
         li.appendChild(btn);
         categoriesMenu.appendChild(li);
       });
     }
-    function openMenu(){
+    function openCatMenu(){
       categoriesMenu.hidden = false;
       catToggle.setAttribute('aria-expanded', 'true');
     }
-    function closeMenu(){
+    function closeCatMenu(){
       categoriesMenu.hidden = true;
       catToggle.setAttribute('aria-expanded', 'false');
     }
@@ -336,18 +353,67 @@
       e.stopPropagation();
       if (categoriesMenu.hidden) {
         buildCategoryMenu();
-        openMenu();
+        openCatMenu();
       } else {
-        closeMenu();
+        closeCatMenu();
       }
     });
-    // cerrar al click fuera
+    // --- BUILD cols menu ---------------------------------------------------
+    function buildColsMenu(){
+      colsMenu.innerHTML = '';
+      COL_OPTIONS.forEach(n => {
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = n;
+        btn.className = (n === currentCols ? 'active' : '');
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          currentCols = n;
+          colsMenu.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          grid.className = `grid cols-${n}`;
+          updateColsToggle();
+          closeColsMenu();
+        };
+        li.appendChild(btn);
+        colsMenu.appendChild(li);
+      });
+    }
+    function updateColsToggle(){
+      colsToggle.textContent = `Columnas: ${currentCols} ▾`;
+    }
+    function openColsMenu(){
+      colsMenu.hidden = false;
+      colsToggle.setAttribute('aria-expanded', 'true');
+    }
+    function closeColsMenu(){
+      colsMenu.hidden = true;
+      colsToggle.setAttribute('aria-expanded', 'false');
+    }
+    colsToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (colsMenu.hidden) {
+        buildColsMenu();
+        openColsMenu();
+      } else {
+        closeColsMenu();
+      }
+    });
+    // cerrar menus al click fuera
     document.addEventListener('click', (ev) => {
-      const outside = !ev.composedPath().includes(categoriesMenu) && !ev.composedPath().includes(catToggle);
-      if (outside) closeMenu();
+      const outsideCat = !ev.composedPath().includes(categoriesMenu) && !ev.composedPath().includes(catToggle);
+      if (outsideCat) closeCatMenu();
+      const outsideCols = !ev.composedPath().includes(colsMenu) && !ev.composedPath().includes(colsToggle);
+      if (outsideCols) closeColsMenu();
     });
     // cerrar con esc
-    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeMenu(); });
+    document.addEventListener('keydown', (ev) => { 
+      if (ev.key === 'Escape') {
+        closeCatMenu();
+        closeColsMenu();
+      }
+    });
     // --- CARD & RENDER -------------------------------------------------------
     function createCard(p) {
       const card = document.createElement('article');
@@ -405,18 +471,6 @@
       renderProducts(list);
     }
     searchInput.addEventListener('input', applyFilters);
-    // --- TOGGLE COLUMNS ------------------------------------------------------
-    toggleCols.addEventListener('click', () => {
-      if (grid.classList.contains('cols-3')) {
-        grid.classList.remove('cols-3');
-        grid.classList.add('cols-4');
-        toggleCols.textContent = 'Menos por fila';
-      } else {
-        grid.classList.remove('cols-4');
-        grid.classList.add('cols-3');
-        toggleCols.textContent = 'Más por fila';
-      }
-    });
     // --- LOAD DATA -----------------------------------------------------------
    async function load() {
   try {
@@ -448,8 +502,10 @@
       stock: p.stock ?? 0,
       imagen: p.imagen ?? ''
     }));
-    grid.classList.add('cols-3');
+    grid.className = `grid cols-${currentCols}`;
     buildCategoryMenu();
+    buildColsMenu();
+    updateColsToggle();
     applyFilters();
   } catch (e) {
     console.error('❌ Error al cargar productos:', e);
