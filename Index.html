@@ -17,7 +17,6 @@
       --card: #fff;
       --muted: #6b6b6b;
       --radius: 12px;
-      --min-card-width: 220px;
     }
     * { box-sizing: border-box; }
     body {
@@ -51,7 +50,6 @@
       max-width: 1200px;
       margin: 28px auto;
       padding: 0 20px;
-      overflow-x: auto;
     }
     .topbar {
   display: flex;
@@ -99,28 +97,25 @@
       display: grid;
       gap: 18px;
     }
-    .grid.cols-3 { grid-template-columns: repeat(3, minmax(var(--min-card-width), 1fr)); }
-    .grid.cols-4 { grid-template-columns: repeat(4, minmax(var(--min-card-width), 1fr)); }
-    .grid.cols-5 { grid-template-columns: repeat(5, minmax(var(--min-card-width), 1fr)); }
-    .grid.cols-6 { grid-template-columns: repeat(6, minmax(var(--min-card-width), 1fr)); }
-    .grid.cols-7 { grid-template-columns: repeat(7, minmax(var(--min-card-width), 1fr)); }
-    .grid.cols-8 { grid-template-columns: repeat(8, minmax(var(--min-card-width), 1fr)); }
+    .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
+    .grid.cols-6 { grid-template-columns: repeat(6, 1fr); }
+    .grid.cols-7 { grid-template-columns: repeat(7, 1fr); }
+    .grid.cols-8 { grid-template-columns: repeat(8, 1fr); }
     @media (max-width:1000px) {
-      .grid.cols-5 { grid-template-columns: repeat(4, minmax(var(--min-card-width), 1fr)); }
-      .grid.cols-6 { grid-template-columns: repeat(4, minmax(var(--min-card-width), 1fr)); }
-      .grid.cols-7 { grid-template-columns: repeat(4, minmax(var(--min-card-width), 1fr)); }
-      .grid.cols-8 { grid-template-columns: repeat(4, minmax(var(--min-card-width), 1fr)); }
+      .grid.cols-5 { grid-template-columns: repeat(4,1fr); }
+      .grid.cols-6 { grid-template-columns: repeat(4,1fr); }
+      .grid.cols-7 { grid-template-columns: repeat(4,1fr); }
+      .grid.cols-8 { grid-template-columns: repeat(4,1fr); }
     }
     @media (max-width:700px) {
-      :root {
-        --min-card-width: 160px;
-      }
-      .grid.cols-3 { grid-template-columns: repeat(2, minmax(var(--min-card-width), 1fr)); }
-      .grid.cols-4 { grid-template-columns: repeat(2, minmax(var(--min-card-width), 1fr)); }
-      .grid.cols-5 { grid-template-columns: repeat(2, minmax(var(--min-card-width), 1fr)); }
-      .grid.cols-6 { grid-template-columns: repeat(2, minmax(var(--min-card-width), 1fr)); }
-      .grid.cols-7 { grid-template-columns: repeat(2, minmax(var(--min-card-width), 1fr)); }
-      .grid.cols-8 { grid-template-columns: repeat(2, minmax(var(--min-card-width), 1fr)); }
+      .grid.cols-3 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-4 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-5 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-6 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-7 { grid-template-columns: repeat(2,1fr); }
+      .grid.cols-8 { grid-template-columns: repeat(2,1fr); }
     }
     .card {
       background: var(--card);
