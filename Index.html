@@ -430,18 +430,32 @@
       const displayedPrice = formatMoney(parsePrice(p.precio) * 1.10);
       // Imagen placeholder por defecto
       const img = document.createElement('img');
-      img.src = getImageUrl('placeholder.png');
+      const placeholderUrl = getImageUrl('placeholder.png');
+      console.log('Placeholder URL:', placeholderUrl);
+      img.src = placeholderUrl;
       img.alt = p.nombre || 'Producto';
       // Determinar URL real de la imagen
       if (p.imagen) {
+        console.log('Attempting to load image for product:', p.nombre, 'with filename:', p.imagen);
         const imgPath = p.imagen.trim();
         const publicUrl = getImageUrl(imgPath);
+        console.log('Generated public URL for', p.nombre, ':', publicUrl);
         if (publicUrl) {
           const realImg = new Image();
           realImg.src = publicUrl;
-          realImg.onload = () => { img.src = publicUrl; };
-          realImg.onerror = () => { img.src = getImageUrl('placeholder.png'); };
+          realImg.onload = () => {
+            console.log('Successfully loaded image for', p.nombre, 'from URL:', publicUrl);
+            img.src = publicUrl;
+          };
+          realImg.onerror = (err) => {
+            console.error('Failed to load image for', p.nombre, 'from URL:', publicUrl, 'Error:', err);
+            img.src = placeholderUrl;
+          };
+        } else {
+          console.warn('No public URL generated for', p.nombre);
         }
+      } else {
+        console.log('No image filename provided for product:', p.nombre);
       }
       card.innerHTML = `
         <div class="thumb"></div>
@@ -511,6 +525,11 @@
       stock: p.stock ?? 0,
       imagen: p.imagen ?? ''
     }));
+    console.log('Loaded products count:', PRODUCTS.length);
+    if (PRODUCTS.length > 0) {
+      console.log('Sample product:', PRODUCTS[0]);
+      console.log('Sample imagen values:', PRODUCTS.slice(0, 5).map(p => p.imagen));
+    }
     grid.className = `grid cols-${currentCols}`;
     buildCategoryMenu();
     buildColsMenu();
@@ -520,7 +539,15 @@
     // Cargar logo desde storage
     const logoImg = document.getElementById('logoImg');
     const logoUrl = getImageUrl('logo.png');
-    logoImg.src = logoUrl || getImageUrl('placeholder.png');
+    console.log('Logo URL:', logoUrl);
+    const placeholderUrl = getImageUrl('placeholder.png');
+    console.log('Placeholder URL for logo fallback:', placeholderUrl);
+    logoImg.src = logoUrl || placeholderUrl;
+    logoImg.onload = () => console.log('Logo loaded successfully from:', logoImg.src);
+    logoImg.onerror = (err) => {
+      console.error('Failed to load logo from:', logoUrl, 'Error:', err);
+      logoImg.src = placeholderUrl;
+    };
 
   } catch (e) {
     console.error('❌ Error al cargar productos:', e);
