@@ -324,7 +324,7 @@
       const s = String(c).trim();
       return FIXED_CATEGORIES.includes(s) ? s : 'Otros';
     }
-    async function getImageUrl(fileName) {
+    function getImageUrl(fileName) {
       if (!fileName) return '';
       const { data } = supa.storage.from('imagenes').getPublicUrl(fileName.trim());
       return data.publicUrl || '';
@@ -424,23 +424,23 @@
       }
     });
     // --- CARD & RENDER -------------------------------------------------------
-    async function createCard(p) {
+    function createCard(p) {
       const card = document.createElement('article');
       card.className = 'card';
       const displayedPrice = formatMoney(parsePrice(p.precio) * 1.10);
       // Imagen placeholder por defecto
       const img = document.createElement('img');
-      img.src = await getImageUrl('placeholder.png');
+      img.src = getImageUrl('placeholder.png');
       img.alt = p.nombre || 'Producto';
       // Determinar URL real de la imagen
       if (p.imagen) {
         const imgPath = p.imagen.trim();
-        const publicUrl = await getImageUrl(imgPath);
+        const publicUrl = getImageUrl(imgPath);
         if (publicUrl) {
           const realImg = new Image();
           realImg.src = publicUrl;
           realImg.onload = () => { img.src = publicUrl; };
-          realImg.onerror = async () => { img.src = await getImageUrl('placeholder.png'); };
+          realImg.onerror = () => { img.src = getImageUrl('placeholder.png'); };
         }
       }
       card.innerHTML = `
@@ -454,20 +454,17 @@
       card.querySelector('.thumb').appendChild(img);
       return card;
     }
-    async function renderProducts(list){
+    function renderProducts(list){
       grid.innerHTML = '';
       if(!list || list.length === 0){
         empty.style.display = 'block';
         return;
       }
       empty.style.display = 'none';
-      for (const p of list) {
-        const card = await createCard(p);
-        grid.appendChild(card);
-      }
+      list.forEach(p => grid.appendChild(createCard(p)));
     }
     // --- FILTERS -------------------------------------------------------------
-    async function applyFilters(){
+    function applyFilters(){
       const q = searchInput.value.trim().toLowerCase();
       let list = PRODUCTS.slice();
       if(currentCategory && currentCategory !== 'Todas'){
@@ -480,7 +477,7 @@
           (p.nombre || '').toLowerCase().includes(q)
         );
       }
-      await renderProducts(list);
+      renderProducts(list);
     }
     searchInput.addEventListener('input', applyFilters);
     // --- LOAD DATA -----------------------------------------------------------
@@ -518,12 +515,12 @@
     buildCategoryMenu();
     buildColsMenu();
     updateColsToggle();
-    await applyFilters();
+    applyFilters();
 
     // Cargar logo desde storage
     const logoImg = document.getElementById('logoImg');
-    const logoUrl = await getImageUrl('logo.png');
-    logoImg.src = logoUrl || await getImageUrl('placeholder.png');
+    const logoUrl = getImageUrl('logo.png');
+    logoImg.src = logoUrl || getImageUrl('placeholder.png');
 
   } catch (e) {
     console.error('❌ Error al cargar productos:', e);
