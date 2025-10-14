@@ -96,6 +96,8 @@
       display: grid;
       gap: 18px;
     }
+    .grid.cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .grid.cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
@@ -174,6 +176,7 @@
       font-weight: 700;
       cursor: pointer;
       box-shadow: 0 6px 16px rgba(6,59,17,0.04);
+      min-width: 120px;
     }
     .cat-toggle[aria-expanded="true"]{ transform: translateY(-1px); }
     .cat-menu{
@@ -216,6 +219,7 @@
     @media (max-width: 600px) {
       .topbar {
         flex-wrap: wrap;
+        gap: 8px;
       }
       .search {
         order: 0;
@@ -226,18 +230,17 @@
         width: 100%;
       }
       .cols-wrapper {
-        display: none;
-      }
-      .cat-wrapper {
         order: 1;
         margin-left: 0;
-        flex-basis: 100%;
+        flex-shrink: 0;
+      }
+      .cat-wrapper {
+        order: 2;
+        margin-left: auto;
+        flex-shrink: 0;
       }
       .grid {
         gap: 12px;
-      }
-      .grid[class*="cols-"] {
-        grid-template-columns: repeat(2, 1fr) !important;
       }
       .card {
         min-height: auto;
@@ -284,21 +287,23 @@
       .cat-toggle {
         padding: 12px 16px;
         font-size: 14px;
-        width: 100%;
       }
       .topbar {
-        gap: 8px;
         margin-bottom: 20px;
       }
       .search input {
         padding: 14px 16px;
         font-size: 16px;
       }
-    }
-    @media (max-width: 480px) {
-      .grid[class*="cols-"] {
-        grid-template-columns: 1fr !important;
+      @media (orientation: portrait) {
+        .cols-wrapper, .cat-wrapper {
+          flex-basis: 100%;
+          margin-left: 0;
+          margin-right: 0;
+        }
       }
+    }
+    @media (max-width: 400px) {
       .name {
         font-size: 16px;
       }
@@ -372,7 +377,7 @@
       "PAPELES Y BOLSAS", "PEGAMENTOS", "PERFUMERIA", "REPELENTES", "ACCESORIOS",
       "SHAMPO Y ENJUAGUE", "TINTURAS NANTYR"
     ];
-    const COL_OPTIONS = [3,4,5,6,7,8];
+    const COL_OPTIONS = [1,2,3,4,5,6,7,8];
     let PRODUCTS = [];
     let currentCategory = 'Todas';
     let currentCols = 3;
@@ -609,11 +614,36 @@
       console.log('Sample product:', PRODUCTS[0]);
       console.log('Sample imagen values:', PRODUCTS.slice(0, 5).map(p => p.imagen));
     }
+
+    // Set initial columns based on screen size and orientation
+    if (window.innerWidth <= 600) {
+      if (window.matchMedia('(orientation: portrait)').matches) {
+        currentCols = 1;
+      } else {
+        currentCols = 2;
+      }
+    }
+
     grid.className = `grid cols-${currentCols}`;
     buildCategoryMenu();
     buildColsMenu();
     updateColsToggle();
     applyFilters();
+
+    // Listen for orientation changes
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        if (window.innerWidth <= 600) {
+          if (window.matchMedia('(orientation: portrait)').matches) {
+            currentCols = 1;
+          } else {
+            currentCols = 2;
+          }
+          grid.className = `grid cols-${currentCols}`;
+          updateColsToggle();
+        }
+      }, 300); // Delay to allow orientation to settle
+    });
 
     // Cargar logo desde storage
     const logoImg = document.getElementById('logoImg');
