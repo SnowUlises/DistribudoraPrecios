@@ -440,7 +440,7 @@
           const realImg = new Image();
           realImg.src = publicUrl;
           realImg.onload = () => { img.src = publicUrl; };
-          realImg.onerror = () => { img.src = await getImageUrl('placeholder.png'); };
+          realImg.onerror = async () => { img.src = await getImageUrl('placeholder.png'); };
         }
       }
       card.innerHTML = `
@@ -467,7 +467,7 @@
       }
     }
     // --- FILTERS -------------------------------------------------------------
-    function applyFilters(){
+    async function applyFilters(){
       const q = searchInput.value.trim().toLowerCase();
       let list = PRODUCTS.slice();
       if(currentCategory && currentCategory !== 'Todas'){
@@ -480,7 +480,7 @@
           (p.nombre || '').toLowerCase().includes(q)
         );
       }
-      renderProducts(list);
+      await renderProducts(list);
     }
     searchInput.addEventListener('input', applyFilters);
     // --- LOAD DATA -----------------------------------------------------------
@@ -518,7 +518,7 @@
     buildCategoryMenu();
     buildColsMenu();
     updateColsToggle();
-    applyFilters();
+    await applyFilters();
 
     // Cargar logo desde storage
     const logoImg = document.getElementById('logoImg');
