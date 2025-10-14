@@ -326,7 +326,8 @@
     }
     function getImageUrl(fileName) {
       if (!fileName) return '';
-      const { data } = supa.storage.from('imagenes').getPublicUrl(fileName.trim());
+      const cleanFileName = fileName.trim().replace(/^imagenes\//, '');
+      const { data } = supa.storage.from('imagenes').getPublicUrl(cleanFileName);
       return data.publicUrl || '';
     }
     // --- BUILD category menu -----------------------------------------------
