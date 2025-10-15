@@ -295,13 +295,6 @@
         padding: 14px 16px;
         font-size: 16px;
       }
-      @media (orientation: portrait) {
-        .cols-wrapper, .cat-wrapper {
-          flex-basis: 100%;
-          margin-left: 0;
-          margin-right: 0;
-        }
-      }
     }
     @media (max-width: 400px) {
       .name {
@@ -377,10 +370,10 @@
       "PAPELES Y BOLSAS", "PEGAMENTOS", "PERFUMERIA", "REPELENTES", "ACCESORIOS",
       "SHAMPO Y ENJUAGUE", "TINTURAS NANTYR"
     ];
-    const COL_OPTIONS = [1,2,3,4,5,6,7,8];
+    const COL_OPTIONS = [1,2,3,4];
     let PRODUCTS = [];
     let currentCategory = 'Todas';
-    let currentCols = 3;
+    let currentCols = 2;
     const empty = document.getElementById('empty');
     const grid = document.getElementById('grid');
     const categoriesMenu = document.getElementById('categoriesMenu');
@@ -615,13 +608,9 @@
       console.log('Sample imagen values:', PRODUCTS.slice(0, 5).map(p => p.imagen));
     }
 
-    // Set initial columns based on screen size and orientation
+    // Set initial columns based on screen size
     if (window.innerWidth <= 600) {
-      if (window.matchMedia('(orientation: portrait)').matches) {
-        currentCols = 1;
-      } else {
-        currentCols = 2;
-      }
+      currentCols = 2;
     }
 
     grid.className = `grid cols-${currentCols}`;
@@ -634,11 +623,7 @@
     window.addEventListener('orientationchange', () => {
       setTimeout(() => {
         if (window.innerWidth <= 600) {
-          if (window.matchMedia('(orientation: portrait)').matches) {
-            currentCols = 1;
-          } else {
-            currentCols = 2;
-          }
+          currentCols = 2;
           grid.className = `grid cols-${currentCols}`;
           updateColsToggle();
         }
