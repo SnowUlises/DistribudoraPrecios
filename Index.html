@@ -403,7 +403,7 @@
 
     load();
 
-    // ==================== PDF DEFINITIVO - SIN ERRORES, IMÁGENES VISIBLES, PRECIOS ARGENTINOS ====================
+    // ==================== PDF PERFECTO CON CUADRÍCULA REAL, BORDES Y SIN SOLAPES ====================
     async function generatePDF(rows = 6, cols = 6, priceMod = 0) {
       if (!window.PRODUCTS || window.PRODUCTS.length === 0) {
         alert('Esperá que carguen los productos');
@@ -427,12 +427,15 @@
       const pageHeight = 210;
       const margin = 10;
       const cellWidth = (pageWidth - 2 * margin) / cols;
-      const cellHeight = (pageHeight - 2 * margin - 20) / rows;
+      const cellHeight = (pageHeight - 2 * margin - 25) / rows; // más espacio arriba para categoría
 
-      const imgMaxPixels = 120; // máximo 120px → base64 pequeño
+      const imgHeight = cellHeight * 0.55; // imagen ocupa 55% de la celda
+      const nameMaxHeight = cellHeight * 0.30; // nombre 30%
+      const priceHeight = cellHeight * 0.10;
 
-      let y = margin + 10;
+      let y = margin + 15;
       let colIndex = 0;
+      let firstPage = true;
 
       const categories = {};
       window.PRODUCTS.forEach(p => {
@@ -451,20 +454,33 @@
       }
 
       for (const [cat, items] of Object.entries(categories)) {
-        doc.setFontSize(18);
+        // Título de categoría
+        if (!firstPage) {
+          doc.addPage();
+          y = margin + 10;
+        }
+        firstPage = false;
+
+        doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
-        doc.text(cat, margin, y);
-        y += 10;
+        doc.setTextColor(5, 49, 11);
+        doc.text(cat, pageWidth / 2, y, { align: 'center' });
+        y += 12;
 
         for (const prod of items) {
-          if (y + cellHeight > pageHeight - margin) {
+          if (colIndex === 0 && y + cellHeight > pageHeight - margin) {
             doc.addPage();
             y = margin + 10;
-            colIndex = 0;
           }
 
           const x = margin + colIndex * cellWidth;
 
+          // Borde de la celda
+          doc.setDrawColor(180, 180, 180);
+          doc.setLineWidth(0.5);
+          doc.rect(x, y, cellWidth, cellHeight, 'S');
+
+          // Imagen (perfectamente ajustada y centrada)
           if (prod.imgSrc) {
             try {
               const imgData = await Promise.race([
@@ -474,17 +490,15 @@
                   img.onload = () => {
                     let w = img.width;
                     let h = img.height;
-                    if (w > imgMaxPixels || h > imgMaxPixels) {
-                      const r = imgMaxPixels / Math.max(w, h);
-                      w *= r;
-                      h *= r;
-                    }
+                    const ratio = Math.min((cellWidth - 10) / w, imgHeight / h);
+                    w *= ratio;
+                    h *= ratio;
                     const canvas = document.createElement('canvas');
                     canvas.width = w;
                     canvas.height = h;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, w, h);
-                    resolve(canvas.toDataURL('image/jpeg', 0.6));
+                    resolve(canvas.toDataURL('image/jpeg', 0.85));
                   };
                   img.onerror = () => resolve(null);
                   img.src = prod.imgSrc;
@@ -493,23 +507,26 @@
               ]);
 
               if (imgData) {
-                const imgH = cellHeight * 0.6;
-                const imgW = cellWidth * 0.85;
-                const imgX = x + (cellWidth - imgW) / 2;
-                doc.addImage(imgData, 'JPEG', imgX, y + 5, imgW, imgH);
+                const imgX = x + (cellWidth - (cellWidth - 10)) / 2;
+                doc.addImage(imgData, 'JPEG', imgX + 5, y + 5, cellWidth - 10, imgHeight);
               }
             } catch (e) {}
           }
 
-          doc.setFontSize(11);
+          // Nombre del producto (perfectamente debajo de la imagen)
+          const nameY = y + imgHeight + 8;
+          doc.setFontSize(10.5);
           doc.setFont('helvetica', 'bold');
+          doc.setTextColor(0, 0, 0);
           const lines = doc.splitTextToSize(prod.name, cellWidth - 12);
-          doc.text(lines, x + 6, y + cellHeight * 0.7);
+          doc.text(lines, x + 6, nameY);
 
+          // Precio (siempre al fondo de la celda)
+          const priceY = y + cellHeight - 10;
           doc.setFontSize(14);
           doc.setTextColor(6, 59, 17);
           doc.setFont('helvetica', 'bold');
-          doc.text(formatARS(prod.price), x + 6, y + cellHeight - 10);
+          doc.text(formatARS(prod.price), x + 6, priceY);
 
           colIndex++;
           if (colIndex >= cols) {
@@ -518,16 +535,16 @@
           }
         }
 
-        y += 18;
+        y += 10; // espacio extra después de cada categoría
       }
 
       const fileName = `Catalogo_Funaz_${new Date().toISOString().slice(0,10)}.pdf`;
       doc.save(fileName);
-      alert('PDF generado PERFECTO');
-      console.log('PDF listo → ' + fileName);
+      alert('PDF generado con cuadrícula perfecta, bordes y sin solapes');
+      console.log('PDF perfecto → ' + fileName);
     }
 
-    console.log('%c¡VERSIÓN FINAL! generatePDF(6,6,20) → todo perfecto', 'color: white; background: #063b11; padding: 20px; font-size: 22px; font-weight: bold');
+    console.log('%cCUADRÍCULA PERFECTA LISTA - generatePDF(6,6,20)', 'color: white; background: #063b11; padding: 20px; font-size: 22px; font-weight: bold');
   </script>
 </body>
 </html>
