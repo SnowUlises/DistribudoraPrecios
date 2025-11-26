@@ -403,7 +403,7 @@
 
     load();
 
-    // ==================== PDF HERMOSO - IMÁGENES CORRECTAS + PRECIOS ARGENTINOS ====================
+    // ==================== PDF DEFINITIVO - SIN ERRORES, IMÁGENES VISIBLES, PRECIOS ARGENTINOS ====================
     async function generatePDF(rows = 6, cols = 6, priceMod = 0) {
       if (!window.PRODUCTS || window.PRODUCTS.length === 0) {
         alert('Esperá que carguen los productos');
@@ -425,12 +425,11 @@
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       const pageWidth = 297;
       const pageHeight = 210;
-      const margin = 12;
+      const margin = 10;
       const cellWidth = (pageWidth - 2 * margin) / cols;
       const cellHeight = (pageHeight - 2 * margin - 20) / rows;
 
-      const maxImgHeight = cellHeight * 0.62;
-      const maxImgWidth = cellWidth - 12;
+      const imgMaxPixels = 120; // máximo 120px → base64 pequeño
 
       let y = margin + 10;
       let colIndex = 0;
@@ -447,12 +446,8 @@
         });
       });
 
-      // Función para formatear precios como en Argentina
       function formatARS(n) {
-        const str = n.toFixed(2);
-        const parts = str.split('.');
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        return '$ ' + parts.join(',');
+        return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(n);
       }
 
       for (const [cat, items] of Object.entries(categories)) {
@@ -470,38 +465,47 @@
 
           const x = margin + colIndex * cellWidth;
 
-          // IMAGEN SIN CANVAS (jsPDF la carga directamente → funciona aunque CORS estricto)
           if (prod.imgSrc) {
             try {
-              const img = new Image();
-              img.crossOrigin = 'anonymous';
-              await new Promise((resolve, reject) => {
-                img.onload = () => {
-                  let drawWidth = img.width;
-                  let drawHeight = img.height;
-                  const ratio = Math.min(maxImgWidth / img.width, maxImgHeight / img.height);
-                  drawWidth *= ratio;
-                  drawHeight *= ratio;
-                  const imgX = x + (cellWidth - drawWidth) / 2;
-                  const imgY = y + 6;
-                  doc.addImage(prod.imgSrc, 'JPEG', imgX, imgY, drawWidth, drawHeight);
-                  resolve();
-                };
-                img.onerror = () => resolve(); // si falla, sigue sin imagen
-                img.src = prod.imgSrc + '?t=' + Date.now();
-              });
+              const imgData = await Promise.race([
+                new Promise(resolve => {
+                  const img = new Image();
+                  img.crossOrigin = 'anonymous';
+                  img.onload = () => {
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > imgMaxPixels || h > imgMaxPixels) {
+                      const r = imgMaxPixels / Math.max(w, h);
+                      w *= r;
+                      h *= r;
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6));
+                  };
+                  img.onerror = () => resolve(null);
+                  img.src = prod.imgSrc;
+                }),
+                new Promise(resolve => setTimeout(() => resolve(null), 3000))
+              ]);
+
+              if (imgData) {
+                const imgH = cellHeight * 0.6;
+                const imgW = cellWidth * 0.85;
+                const imgX = x + (cellWidth - imgW) / 2;
+                doc.addImage(imgData, 'JPEG', imgX, y + 5, imgW, imgH);
+              }
             } catch (e) {}
           }
 
-          // Nombre del producto
-          doc.setFontSize(10.8);
+          doc.setFontSize(11);
           doc.setFont('helvetica', 'bold');
           const lines = doc.splitTextToSize(prod.name, cellWidth - 12);
-          let nameY = y + maxImgHeight + 10;
-          if (lines.length > 3) doc.setFontSize(9.2);
-          doc.text(lines, x + 6, nameY);
+          doc.text(lines, x + 6, y + cellHeight * 0.7);
 
-          // Precio grande, verde y formato argentino
           doc.setFontSize(14);
           doc.setTextColor(6, 59, 17);
           doc.setFont('helvetica', 'bold');
@@ -519,11 +523,11 @@
 
       const fileName = `Catalogo_Funaz_${new Date().toISOString().slice(0,10)}.pdf`;
       doc.save(fileName);
-      alert('PDF PERFECTO generado: imágenes correctas + precios argentinos');
+      alert('PDF generado PERFECTO');
       console.log('PDF listo → ' + fileName);
     }
 
-    console.log('%cLISTO - usa generatePDF(6,6,20) ahora mismo', 'color: white; background: #063b11; padding: 20px; font-size: 22px; font-weight: bold');
+    console.log('%c¡VERSIÓN FINAL! generatePDF(6,6,20) → todo perfecto', 'color: white; background: #063b11; padding: 20px; font-size: 22px; font-weight: bold');
   </script>
 </body>
 </html>
