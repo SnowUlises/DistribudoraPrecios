@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Distribuidora Funaz - Mayorista/Minorista en San Juan</title>
   <meta name="description" content="Distribuidora Funaz ofrece productos mayoristas en San Juan: alimentos, limpieza, perfumería y más. Pedí por WhatsApp y recibí tu pedido fácil y rápido.">
-  <meta name="keywords" content="distribuidora mayorista, alimentos San Juan, perfumería, limpieza, Funaz, productos mayoristas, distribuidora san juan">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -23,9 +22,7 @@
       color: #0b2a12;
     }
     header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: center;
       padding: 30px 0;
       background: linear-gradient(90deg, rgba(255,255,255,0.6), transparent);
       backdrop-filter: blur(4px);
@@ -228,14 +225,18 @@
         <ul id="colsMenu" class="cat-menu" hidden></ul>
       </div>
       <div class="cat-wrapper" style="position:relative; flex-shrink: 0;">
-        <button id="catToggle" class="cat-toggle">Categorías ▾</button>
-        <ul id="categoriesMenu" class="cat-menu" hidden></ul>
+        <button id="dropdown">
+          <button id="catToggle" class="cat-toggle">Categorías ▾</button>
+          <ul id="categoriesMenu" class="cat-menu" hidden></ul>
+        </div>
       </div>
     </div>
 
     <section id="productsArea">
       <div id="grid" class="grid"></div>
-      <div id="empty" class="empty" style="display:none;margin-top:18px">No se encontraron productos.</div>
+      <div id="empty" class="empty" style="display:none;margin-top:18px">
+        No se encontraron productos.
+      </div>
     </section>
   </main>
 
@@ -287,9 +288,8 @@
 
     function normalizeCategory(c){
       if(!c) return 'Otros';
-      const normalized = String(c).trim().toUpperCase();
-      const found = FIXED_CATEGORIES.find(cat => cat.toUpperCase() === normalized);
-      return found || 'Otros';
+      const s = String(c).trim().toUpperCase();
+      return FIXED_CATEGORIES.includes(s) ? s : 'Otros';
     }
 
     function getImageUrl(fileName) {
@@ -411,8 +411,7 @@
       img.alt = p.nombre || 'Producto';
 
       if (p.imagen) {
-        const imgPath = p.imagen.trim();
-        const publicUrl = getImageUrl(imgPath);
+        const publicUrl = getImageUrl(p.imagen.trim());
         if (publicUrl) {
           const realImg = new Image();
           realImg.src = publicUrl;
@@ -486,28 +485,16 @@
           imagen: p.imagen ?? ''
         }));
 
-        console.log('Loaded products count:', PRODUCTS.length);
+        console.log('Productos cargados:', PRODUCTS.length);
 
-        window.PRODUCTS = PRODUCTS;
+        window.PRODUCTS = PRODUCTS; // Global para consola
 
-        if (window.innerWidth <= 600) {
-          currentCols = 2;
-        }
+        if (window.innerWidth <= 600) currentCols = 2;
         grid.className = `grid cols-${currentCols}`;
         buildCategoryMenu();
         buildColsMenu();
         updateColsToggle();
         applyFilters();
-
-        window.addEventListener('orientationchange', () => {
-          setTimeout(() => {
-            if (window.innerWidth <= 600) {
-              currentCols = 2;
-              grid.className = `grid cols-${currentCols}`;
-              updateColsToggle();
-            }
-          }, 300);
-        });
 
         const logoImg = document.getElementById('logoImg');
         const logoUrl = getImageUrl('logo.png');
@@ -522,18 +509,28 @@
 
     load();
 
-    // ==================== FUNCIÓN PDF CORREGIDA 100% (sin errores de inicialización) ====================
+    // ==================== GENERADOR DE PDF FINAL Y ESTABLE ====================
     async function generatePDF(rows = 6, cols = 6, priceMod = 0) {
-      if (!PRODUCTS || PRODUCTS.length === 0) {
-        alert('Todavía no se cargaron los productos. Esperá 10 segundos más y volvé a intentar.');
+      if (!window.PRODUCTS || window.PRODUCTS.length === 0) {
+        alert('Aún no se cargaron los productos. Esperá un poco más y volvé a intentar.');
         return;
       }
 
-      // Import dinámico del módulo ES de jsPDF (nunca falla, no usa globals con problemas)
-      const { jsPDF } = await import('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.es.min.js');
+      // Carga segura de jsPDF UMD
+      if (!window.jspdf) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      const { jsPDF } = window.jspdf;
 
       const categories = {};
-      PRODUCTS.forEach(p => {
+      window.PRODUCTS.forEach(p => {
         const cat = normalizeCategory(p.categoria) || 'Otros';
         if (!categories[cat]) categories[cat] = [];
         const price = parsePrice(p.precio) * (1 + priceMod / 100);
@@ -568,7 +565,6 @@
 
           const x = margin + colIndex * cellWidth;
 
-          // Imagen (con try/catch y fallback silencioso)
           if (prod.imgSrc) {
             try {
               const imgData = await new Promise((resolve) => {
@@ -588,17 +584,12 @@
               if (imgData) {
                 doc.addImage(imgData, 'JPEG', x + 4, y + 2, cellWidth - 8, cellHeight * 0.58);
               }
-            } catch (e) {
-              // Silencioso, sigue con el texto
-            }
+            } catch (e) {}
           }
 
-          // Nombre del producto (con corte de texto automático)
           const lines = doc.splitTextToSize(prod.name, cellWidth - 10);
           doc.setFontSize(9.5);
           doc.text(lines, x + 4, y + cellHeight * 0.65);
-
-          // Precio
           doc.setFontSize(11);
           doc.text(`$ ${prod.price}`, x + 4, y + cellHeight - 8);
 
@@ -608,19 +599,23 @@
             y += cellHeight;
           }
         }
-        y += 14; // espacio entre categorías
+        y += 14;
       }
 
       const fileName = `Catalogo_Funaz_${new Date().toISOString().slice(0,10)}.pdf`;
       doc.save(fileName);
-      console.log('PDF generado correctamente →', fileName);
+      alert('¡PDF generado con éxito! Revisa tu carpeta de descargas.');
+      console.log('PDF listo → ' + fileName);
     }
 
-    console.log('%c¡FUNCIÓN generatePDF 100% FUNCIONANDO! (versión corregida nov 2025)', 'color: #7ED957; font-size: 18px; font-weight: bold');
-    console.log('Usala directamente en consola:');
-    console.log('  generatePDF()                 → 6×6, precio original');
-    console.log('  generatePDF(7,6,30)          → 7 filas × 6 columnas +30%');
-    console.log('  generatePDF(5,5,-20)         → 5×5 con 20% descuento');
+    // Mensaje final en consola
+    setTimeout(() => {
+      console.log('%c¡TODO LISTO! Ya podés generar el PDF cuando quieras con:', 'color: #7ED957; font-size: 20px; font-weight: bold');
+      console.log('%cgeneratePDF(6,6,20)  →  +20% mayorista', 'color: white; background: #063b11; padding: 10px; border-radius: 8px; font-size: 18px');
+      console.log('%cgeneratePDF(7,6,50)  →  +50% minorista', 'color: white; background: #063b11; padding: 10px; border-radius: 8px; font-size: 18px');
+      console.log('%cgeneratePDF(5,5,-15) →  15% descuento', 'color: white; background: #063b11; padding: 10px; border-radius: 8px; font-size: 18px');
+    }, 3000);
+
   </script>
 </body>
 </html>
