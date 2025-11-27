@@ -403,7 +403,7 @@
 
     load();
 
-    // ==================== PDF ULTRA NÍTIDO - IMÁGENES CRISTALINAS + TEXTO PERFECTO ====================
+    // ==================== PDF FINAL - IMÁGENES NÍTIDAS + PRECIOS PERFECTOS ====================
     async function generatePDF(rows = 6, cols = 6, priceMod = 0) {
       if (!window.PRODUCTS || window.PRODUCTS.length === 0) {
         alert('Esperá que carguen los productos');
@@ -429,10 +429,6 @@
       const cellWidth = (pageWidth - 2 * margin) / cols;
       const cellHeight = (pageHeight - 2 * margin - 25) / rows;
 
-      // Imagen ocupa 60% de la celda, con resolución alta
-      const imgMaxPixels = 300; // 300px → imágenes cristalinas
-      const imgQuality = 0.98; // calidad casi máxima
-
       let y = margin + 15;
       let colIndex = 0;
 
@@ -448,9 +444,8 @@
         });
       });
 
-      function formatARS(n) {
-        return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(n);
-      }
+      // Formato precio argentino perfecto
+      const formatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
 
       for (const [cat, items] of Object.entries(categories)) {
         doc.setFontSize(20);
@@ -469,62 +464,34 @@
           const x = margin + colIndex * cellWidth;
 
           // Borde suave
-          doc.setDrawColor(200, 200, 200);
-          doc.setLineWidth(0.3);
+          doc.setDrawColor(180, 180, 180);
+          doc.setLineWidth(0.4);
           doc.rect(x + 2, y + 2, cellWidth - 4, cellHeight - 4, 'S');
 
-          // IMAGEN CRISTALINA
+          // IMAGEN NÍTIDA - cargada directamente desde URL (jsPDF la descarga en alta resolución)
           if (prod.imgSrc) {
             try {
-              const imgData = await Promise.race([
-                new Promise(resolve => {
-                  const img = new Image();
-                  img.crossOrigin = 'anonymous';
-                  img.onload = () => {
-                    let w = img.width;
-                    let h = img.height;
-                    const ratio = Math.min((cellWidth - 12) / w, (cellHeight * 0.6) / h);
-                    w *= ratio;
-                    h *= ratio;
-                    if (w > imgMaxPixels || h > imgMaxPixels) {
-                      const r2 = imgMaxPixels / Math.max(w, h);
-                      w *= r2;
-                      h *= r2;
-                    }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = w;
-                    canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, w, h);
-                    resolve(canvas.toDataURL('image/jpeg', imgQuality));
-                  };
-                  img.onerror = () => resolve(null);
-                  img.src = prod.imgSrc + '?t=' + Date.now();
-                }),
-                new Promise(resolve => setTimeout(() => resolve(null), 3500))
-              ]);
-
-              if (imgData) {
-                const imgX = x + (cellWidth - w) / 2;
-                const imgY = y + 8;
-                doc.addImage(imgData, 'JPEG', imgX, imgY, w, h);
-              }
+              const imgWidth = cellWidth - 16;
+              const imgHeight = cellHeight * 0.58;
+              const imgX = x + (cellWidth - imgWidth) / 2;
+              const imgY = y + 8;
+              doc.addImage(prod.imgSrc, 'JPEG', imgX, imgY, imgWidth, imgHeight, undefined, 'SLOW'); // 'SLOW' = máxima calidad
             } catch (e) {}
           }
 
-          // NOMBRE PERFECTO (debajo de la imagen, multi-línea, fuente grande)
-          const nameY = y + (cellHeight * 0.65);
-          doc.setFontSize(12);
+          // Nombre perfecto
+          doc.setFontSize(11.5);
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(0, 0, 0);
+          const nameY = y + cellHeight * 0.68;
           const lines = doc.splitTextToSize(prod.name, cellWidth - 16);
           doc.text(lines, x + 8, nameY);
 
-          // PRECIO GRANDE Y VERDE
-          doc.setFontSize(16);
+          // Precio perfecto
+          doc.setFontSize(15);
           doc.setTextColor(6, 59, 17);
           doc.setFont('helvetica', 'bold');
-          doc.text(formatARS(prod.price), x + 8, y + cellHeight - 12);
+          doc.text(formatter.format(prod.price), x + 8, y + cellHeight - 12);
 
           colIndex++;
           if (colIndex >= cols) {
@@ -533,16 +500,16 @@
           }
         }
 
-        y += 20; // espacio entre categorías
+        y += 20;
       }
 
       const fileName = `Catalogo_Funaz_${new Date().toISOString().slice(0,10)}.pdf`;
       doc.save(fileName);
-      alert('PDF ULTRA NÍTIDO generado - imágenes cristalinas + texto perfecto');
-      console.log('PDF perfecto → ' + fileName);
+      alert('PDF generado - IMÁGENES NÍTIDAS + PRECIOS PERFECTOS');
+      console.log('PDF listo → ' + fileName);
     }
 
-    console.log('%c¡IMÁGENES CRISTALINAS + TEXTO PERFECTO! generatePDF(6,6,20)', 'color: white; background: #063b11; padding: 20px; font-size: 24px; font-weight: bold');
+    console.log('%c¡IMÁGENES NÍTIDAS + PRECIOS PERFECTOS! generatePDF(6,6,20)', 'color: white; background: #063b11; padding: 20px; font-size: 24px; font-weight: bold');
   </script>
 </body>
 </html>
