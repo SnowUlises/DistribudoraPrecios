@@ -257,11 +257,37 @@
     const colsMenu = document.getElementById('colsMenu');
 
     function parsePrice(v){
-      if (!v) return 0;
-      const s = String(v).trim().replace(/\./g,'').replace(',','.');
-      const n = parseFloat(s);
-      return isNaN(n) ? 0 : n;
+  if (v == null) return 0;
+  let s = String(v).trim();
+  const hasDot = s.indexOf('.') !== -1;
+  const hasComma = s.indexOf(',') !== -1;
+
+  if (hasDot && hasComma) {
+    // el separador decimal será el que aparezca más a la derecha
+    if (s.lastIndexOf('.') > s.lastIndexOf(',')) {
+      // '.' es decimal, eliminar comas (miles)
+      s = s.replace(/,/g, '');
+    } else {
+      // ',' es decimal
+      s = s.replace(/\./g, '').replace(/,/g, '.');
     }
+  } else if (hasComma) {
+    // sólo coma -> coma decimal
+    s = s.replace(/\./g, '').replace(/,/g, '.');
+  } else if (hasDot) {
+    // sólo punto -> puede ser decimal o separador de miles:
+    // si hay exactamente 3 dígitos después del punto lo tratamos como separador de miles
+    const parts = s.split('.');
+    const aft = parts[1] || '';
+    if (aft.length === 3 && parts[0].length > 0) {
+      s = s.replace(/\./g, '');
+    }
+    // si no, dejamos el punto como decimal
+  }
+
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
 
     function formatMoney(n){
       return new Intl.NumberFormat('es-AR', { style:'currency', currency:'ARS' }).format(n);
@@ -438,7 +464,7 @@
     function formatPriceTrunc(value) {
   const n = Number(value);
   if (isNaN(n)) return "0";
-  return Math.trunc(n).toLocaleString("es-AR", { style: "currency", currency: "ARS", minimumFractionDigits: 0 });
+  return Math.trunc(n).toLocaleString('es-AR'); // devuelve "1.238" para 1238.13
 }
 
     // ==================== PDF FINAL - IMÁGENES NÍTIDAS + PRECIOS PERFECTOS ====================
@@ -571,7 +597,7 @@
           doc.setTextColor(6,59,17);
           const priceX = x + innerPadding;
           const priceY = y + cellHeight - innerPadding;
-          doc.text("$ " + formatPriceTrunc(prod.price), priceX, priceY);
+          doc.text("" + formatPriceTrunc(prod.price), priceX, priceY);
 
           colIndex++;
           if (colIndex >= cols) {
@@ -594,5 +620,6 @@
   </script>
 </body>
 </html>
+
 
 
