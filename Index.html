@@ -435,7 +435,11 @@
     }
 
     load();
-
+    function formatPriceTrunc(value) {
+  const n = Number(value);
+  if (isNaN(n)) return "0";
+  return Math.trunc(n).toLocaleString("es-AR");
+}
     // ==================== PDF FINAL - IMÁGENES NÍTIDAS + PRECIOS PERFECTOS ====================
     async function generatePDF(rows = 6, cols = 6, priceMod = 0) {
       if (!window.PRODUCTS || window.PRODUCTS.length === 0) {
@@ -566,7 +570,7 @@
           doc.setTextColor(6,59,17);
           const priceX = x + innerPadding;
           const priceY = y + cellHeight - innerPadding;
-          doc.text(formatter.format(prod.price), priceX, priceY);
+          doc.text(" " + formatPriceTrunc(prod.price), priceX, priceY);
 
           colIndex++;
           if (colIndex >= cols) {
@@ -589,3 +593,4 @@
   </script>
 </body>
 </html>
+
