@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport"width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Distribuidora Funaz - Mayorista/Minorista en San Juan</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
@@ -226,8 +226,20 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNscm95Y3hpZndlenRoZG9ta255Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNzIzNDIsImV4cCI6MjA3MTg0ODM0Mn0.OhgCTvtvdvOejXS9iXPX8rkg3Dh_jBkWObwhL-HnDB8'
     );
 
-    const PLACEHOLDER_URL = 'https://via.placeholder.com/400x400/eeeeee/999999?text=No+Imagen';
-    const LOGO_FALLBACK = 'https://via.placeholder.com/600x200/7ED957/ffffff?text=DISTRIBUIDORA+FUNAZ';
+    // PLACEHOLDER FIJO EXTERNO (siempre carga, nunca falla)
+    let PLACEHOLDER_URL = 'https://via.placeholder.com/400x400/eeeeee/888888?text=SIN+IMAGEN';
+
+    // Intenta cargar el placeholder.png de Supabase, si existe lo usa
+    const phSupabaseUrl = supa.storage.from('imagenes').getPublicUrl('placeholder.png').data.publicUrl;
+    if (phSupabaseUrl) {
+      const tester = new Image();
+      tester.onload = () => {
+        PLACEHOLDER_URL = phSupabaseUrl;
+        console.log('Placeholder de Supabase cargado correctamente');
+      };
+      tester.onerror = () => console.log('placeholder.png no existe o falla → usando externo');
+      tester.src = phSupabaseUrl;
+    }
 
     const FIXED_CATEGORIES = ["Todas","OFERTAS","ALIMENTOS","BEBIDAS","ANALGESICOS","ENCENDEDORES","CREMAS","DESODORANTES","GALLETAS Y GOLOSINAS","JUGOS","LIMPIEZA","PAPELES Y BOLSAS","PEGAMENTOS","PERFUMERIA","REPELENTES","ACCESORIOS","SHAMPO Y ENJUAGUE","TINTURAS NANTYR"];
 
@@ -291,7 +303,7 @@
 
       const img = document.createElement('img');
       img.alt = p.nombre || '';
-      img.src = PLACEHOLDER_URL; // siempre carga algo
+      img.src = PLACEHOLDER_URL; // carga inmediata, nunca queda en blanco
 
       if (p.imagen) {
         const url = getImageUrl(p.imagen.trim());
@@ -408,7 +420,7 @@
 
     searchInput.addEventListener('input', applyFilters);
 
-    async function generatePDF(rows = 6, cols = 6, priceMod = 0) {
+    async function generatePDF(rows = 6, cols = 6, priceMod = 20) {
       if (!window.PRODUCTS || window.PRODUCTS.length === 0) {
         alert('Esperá que carguen los productos');
         return;
@@ -552,7 +564,6 @@
           imagen: p.imagen || ''
         }));
 
-        // ordenar por categoría y nombre
         PRODUCTS.sort((a, b) => {
           const catA = normalizeCategory(a.categoria);
           const catB = normalizeCategory(b.categoria);
@@ -565,16 +576,16 @@
         updateColsToggleText();
         applyFilters();
 
-        // logo con fallback seguro
+        // Logo con fallback
         const logoImg = document.getElementById('logoImg');
         const logoUrl = getImageUrl('logo.png');
         if (logoUrl) {
           const tester = new Image();
           tester.onload = () => logoImg.src = logoUrl;
-          tester.onerror = () => logoImg.src = LOGO_FALLBACK;
+          tester.onerror = () => logoImg.src = 'https://via.placeholder.com/600x200/7ED957/ffffff?text=DISTRIBUIDORA+FUNAZ';
           tester.src = logoUrl;
         } else {
-          logoImg.src = LOGO_FALLBACK;
+          logoImg.src = 'https://via.placeholder.com/600x200/7ED957/ffffff?text=DISTRIBUIDORA+FUNAZ';
         }
 
       } catch (e) {
