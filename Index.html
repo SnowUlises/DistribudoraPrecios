@@ -130,9 +130,9 @@
     }
     
     .btn-action.active {
-        background: var(--primary-light);
-        color: var(--primary);
-        border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+      border-color: var(--primary);
     }
 
     .relative { position: relative; }
@@ -296,7 +296,7 @@
           <img id="logoImg" src="" alt="Funaz Logo" style="display:none"> 
         </div>
         <div class="subtitle">
-           <a href="https://distribuidorapedidos.onrender.com" style="color: var(--primary); text-decoration: none; font-weight: 700; margin-right: 5px;">Haz tu pedido aquí</a>
+          <a href="https://distribuidorapedidos.onrender.com" style="color: var(--primary); text-decoration: none; font-weight: 700; margin-right: 5px;">Haz tu pedido aquí</a>
           · 
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin:0 4px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
           Cristobal Colon 1740, San Juan
@@ -408,7 +408,7 @@
       return data.publicUrl;
     };
     
-    const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300' fill='%23f1f5f9'%3E%3Crect width='300' height='300' /%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='24' fill='%23cbd5e1'%3ESin Imagen%3C/text%3E%3C/svg%3E";
+    const PLACEHOLDER_IMG = "placeholder.png";
 
     // --- RENDERIZADO ---
     function renderProducts(list) {
@@ -473,10 +473,10 @@
         btn.textContent = cat;
         if (cat === currentCategory) btn.className = 'active';
         btn.onclick = () => {
-            currentCategory = cat;
-            catToggle.innerHTML = `${cat === 'Todas' ? 'Categorías' : cat} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>`;
-            categoriesMenu.classList.remove('show');
-            applyFilters();
+          currentCategory = cat;
+          catToggle.innerHTML = `${cat === 'Todas' ? 'Categorías' : cat} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>`;
+          categoriesMenu.classList.remove('show');
+          applyFilters();
         };
         li.appendChild(btn);
         categoriesMenu.appendChild(li);
@@ -485,17 +485,17 @@
       // Columnas
       colsMenu.innerHTML = '';
       [1,2,3,4,5].forEach(n => {
-         const li = document.createElement('li');
-         const btn = document.createElement('button');
-         btn.textContent = `${n} Columnas`;
-         if (n === currentCols) btn.className = 'active';
-         btn.onclick = () => {
-             currentCols = n;
-             grid.className = `grid cols-${n}`;
-             colsMenu.classList.remove('show');
-         };
-         li.appendChild(btn);
-         colsMenu.appendChild(li);
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.textContent = `${n} Columnas`;
+        if (n === currentCols) btn.className = 'active';
+        btn.onclick = () => {
+          currentCols = n;
+          grid.className = `grid cols-${n}`;
+          colsMenu.classList.remove('show');
+        };
+        li.appendChild(btn);
+        colsMenu.appendChild(li);
       });
     }
 
@@ -526,69 +526,69 @@
           const cat = normalizeCategory(p.categoria);
           if (!categories[cat]) categories[cat] = [];
           categories[cat].push({
-             name: p.nombre,
-             price: parsePrice(p.precio) * 1.10, // Precio con el 10%
-             img: p.imagen ? getImageUrl(p.imagen) : null
+            name: p.nombre,
+            price: parsePrice(p.precio) * 1.10, // Precio con el 10%
+            img: p.imagen ? getImageUrl(p.imagen) : null
           });
         });
 
         // Helper imagen
         const urlToDataURL = async (url) => {
-            if(!url) return null;
-            try {
-                const res = await fetch(url);
-                const blob = await res.blob();
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.readAsDataURL(blob);
-                });
-            } catch(e) { return null; }
+          if(!url) return null;
+          try {
+            const res = await fetch(url);
+            const blob = await res.blob();
+            return new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.readAsDataURL(blob);
+            });
+          } catch(e) { return null; }
         };
 
         let y = margin;
         let colIndex = 0;
 
         for (const [catName, items] of Object.entries(categories)) {
-            // Titulo Categoria
-            if (y + 15 > pageHeight - margin) { doc.addPage(); y = margin; }
-            doc.setFontSize(16);
-            doc.setTextColor(21, 128, 61); // Verde
-            doc.setFont('helvetica', 'bold');
-            doc.text(catName, pageWidth / 2, y + 8, { align: 'center' });
-            y += 14;
+          // Titulo Categoria
+          if (y + 15 > pageHeight - margin) { doc.addPage(); y = margin; }
+          doc.setFontSize(16);
+          doc.setTextColor(21, 128, 61); // Verde
+          doc.setFont('helvetica', 'bold');
+          doc.text(catName, pageWidth / 2, y + 8, { align: 'center' });
+          y += 14;
 
-            for (const item of items) {
-                if (y + cellHeight > pageHeight - margin) {
-                    doc.addPage();
-                    y = margin + 10; 
-                    colIndex = 0;
-                }
-                const x = margin + colIndex * cellWidth;
-                
-                // Recuadro
-                doc.setDrawColor(220, 220, 220);
-                doc.rect(x+1, y+1, cellWidth-2, cellHeight-2);
-
-                // Info
-                doc.setFontSize(10);
-                doc.setTextColor(0,0,0);
-                const splitName = doc.splitTextToSize(item.name, cellWidth - 6);
-                doc.text(splitName, x + 3, y + cellHeight - 12);
-                
-                doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
-                doc.text(`$${item.price.toLocaleString('es-AR', {maximumFractionDigits:0})}`, x + 3, y + cellHeight - 4);
-
-                colIndex++;
-                if (colIndex >= cols) {
-                    colIndex = 0;
-                    y += cellHeight;
-                }
+          for (const item of items) {
+            if (y + cellHeight > pageHeight - margin) {
+              doc.addPage();
+              y = margin + 10; 
+              colIndex = 0;
             }
-            // Reset linea para siguiente categoria
-            colIndex = 0; 
-            y += 10; 
+            const x = margin + colIndex * cellWidth;
+            
+            // Recuadro
+            doc.setDrawColor(220, 220, 220);
+            doc.rect(x+1, y+1, cellWidth-2, cellHeight-2);
+
+            // Info
+            doc.setFontSize(10);
+            doc.setTextColor(0,0,0);
+            const splitName = doc.splitTextToSize(item.name, cellWidth - 6);
+            doc.text(splitName, x + 3, y + cellHeight - 12);
+            
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`$${item.price.toLocaleString('es-AR', {maximumFractionDigits:0})}`, x + 3, y + cellHeight - 4);
+
+            colIndex++;
+            if (colIndex >= cols) {
+              colIndex = 0;
+              y += cellHeight;
+            }
+          }
+          // Reset linea para siguiente categoria
+          colIndex = 0; 
+          y += 10; 
         }
 
         doc.save(`Catalogo_Funaz_${new Date().toISOString().slice(0,10)}.pdf`);
@@ -605,20 +605,20 @@
 
     // --- EVENT LISTENERS ---
     catToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        categoriesMenu.classList.toggle('show');
-        colsMenu.classList.remove('show');
+      e.stopPropagation();
+      categoriesMenu.classList.toggle('show');
+      colsMenu.classList.remove('show');
     });
 
     colsToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        colsMenu.classList.toggle('show');
-        categoriesMenu.classList.remove('show');
+      e.stopPropagation();
+      colsMenu.classList.toggle('show');
+      categoriesMenu.classList.remove('show');
     });
 
     document.addEventListener('click', () => {
-        colsMenu.classList.remove('show');
-        categoriesMenu.classList.remove('show');
+      colsMenu.classList.remove('show');
+      categoriesMenu.classList.remove('show');
     });
 
     searchInput.addEventListener('input', applyFilters);
@@ -631,8 +631,8 @@
         const logoUrl = getImageUrl('logo.png');
         const logoImg = document.getElementById('logoImg');
         if(logoUrl) {
-            logoImg.src = logoUrl;
-            logoImg.style.display = 'block';
+          logoImg.src = logoUrl;
+          logoImg.style.display = 'block';
         }
 
         // Carga de productos (loop para traer todos)
@@ -640,14 +640,27 @@
         let from = 0;
         const step = 1000;
         while(true) {
-            const { data, error } = await supa.from('productos').select('*').range(from, from + step - 1);
-            if(error) throw error;
-            if(!data || data.length === 0) break;
-            all = all.concat(data);
-            from += step;
+          const { data, error } = await supa.from('productos').select('*').range(from, from + step - 1);
+          if(error) throw error;
+          if(!data || data.length === 0) break;
+          all = all.concat(data);
+          from += step;
         }
 
-        PRODUCTS = all.sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        // APLICACIÓN DE LA LÓGICA DE STOCK (COPIADA DE LA PRIMERA PÁGINA)
+        PRODUCTS = all.filter(p => {
+          const s = p.stock || 0;
+          const sl = p.stock_leo; 
+
+          // Si es null, undefined o string vacio => Pasa siempre
+          if (sl === null || sl === undefined || sl === '') return true;
+
+          // Si tiene valor numerico, validamos la suma
+          const total = s + Number(sl);
+          return total >= 10;
+        });
+
+        PRODUCTS = PRODUCTS.sort((a,b) => (a.nombre || '').localeCompare(b.nombre || ''));
         
         loadingMsg.style.display = 'none';
         
