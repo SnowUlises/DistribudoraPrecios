@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Distribuidora Funaz - Mayorista/Minorista en San Juan</title>
+  <title>Distribuidora Funaz - Mayorista/Minorista</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -67,7 +67,7 @@
       border-radius: 10px;
       border: 1px solid #dfeede;
     }
-    .cat-toggle{
+    .cat-toggle {
       appearance: none;
       padding: 10px 16px;
       border-radius: 999px;
@@ -76,14 +76,25 @@
       font-weight: 700;
       cursor: pointer;
       box-shadow: 0 6px 16px rgba(6,59,17,0.04);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
-    .cat-menu{
+    .btn-pdf {
+      background: #d32f2f;
+      color: white;
+      border: none;
+    }
+    .btn-pdf:hover {
+      background: #b71c1c;
+    }
+    .cat-menu {
       position: absolute;
       right: 0;
       top: calc(100% + 10px);
       min-width: 200px;
       max-height: 320px;
-      overflow:auto;
+      overflow: auto;
       background: var(--card);
       border-radius: 12px;
       padding: 8px;
@@ -202,6 +213,11 @@
       <div class="search">
         <input id="search" placeholder="Buscar producto..." />
       </div>
+      
+      <button id="btnPdf" class="cat-toggle btn-pdf">
+        📄 Descargar PDF
+      </button>
+
       <div style="position:relative;">
         <button id="colsToggle" class="cat-toggle">Columnas: 2 ▾</button>
         <ul id="colsMenu" class="cat-menu" hidden></ul>
@@ -226,18 +242,12 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNscm95Y3hpZndlenRoZG9ta255Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNzIzNDIsImV4cCI6MjA3MTg0ODM0Mn0.OhgCTvtvdvOejXS9iXPX8rkg3Dh_jBkWObwhL-HnDB8'
     );
 
-    // PLACEHOLDER FIJO EXTERNO (siempre carga, nunca falla)
     let PLACEHOLDER_URL = 'https://via.placeholder.com/400x400/eeeeee/888888?text=SIN+IMAGEN';
 
-    // Intenta cargar el placeholder.png de Supabase, si existe lo usa
     const phSupabaseUrl = supa.storage.from('imagenes').getPublicUrl('placeholder.png').data.publicUrl;
     if (phSupabaseUrl) {
       const tester = new Image();
-      tester.onload = () => {
-        PLACEHOLDER_URL = phSupabaseUrl;
-        console.log('Placeholder de Supabase cargado correctamente');
-      };
-      tester.onerror = () => console.log('placeholder.png no existe o falla → usando externo');
+      tester.onload = () => { PLACEHOLDER_URL = phSupabaseUrl; };
       tester.src = phSupabaseUrl;
     }
 
@@ -254,6 +264,7 @@
     const categoriesMenu = document.getElementById('categoriesMenu');
     const colsToggle = document.getElementById('colsToggle');
     const colsMenu = document.getElementById('colsMenu');
+    const btnPdf = document.getElementById('btnPdf');
 
     function parsePrice(v){
       if (v == null) return 0;
@@ -299,18 +310,18 @@
     function createCard(p) {
       const card = document.createElement('article');
       card.className = 'card';
+      // Precio web FUNAZ: +10%
       const price = formatMoney(parsePrice(p.precio) * 1.10);
 
       const img = document.createElement('img');
       img.alt = p.nombre || '';
-      img.src = PLACEHOLDER_URL; // carga inmediata, nunca queda en blanco
+      img.src = PLACEHOLDER_URL;
 
       if (p.imagen) {
         const url = getImageUrl(p.imagen.trim());
         if (url) {
           const tester = new Image();
           tester.onload = () => img.src = url;
-          tester.onerror = () => img.src = PLACEHOLDER_URL;
           tester.src = url;
         }
       }
@@ -420,11 +431,17 @@
 
     searchInput.addEventListener('input', applyFilters);
 
-    async function generatePDF(rows = 6, cols = 6, priceMod = 20) {
+    // ================= GENERACION PDF =================
+    async function generatePDF(rows = 6, cols = 6) {
       if (!window.PRODUCTS || window.PRODUCTS.length === 0) {
         alert('Esperá que carguen los productos');
         return;
       }
+      
+      const originalText = btnPdf.textContent;
+      btnPdf.textContent = 'Generando...';
+      btnPdf.disabled = true;
+
       if (!window.jspdf) {
         await new Promise((resolve, reject) => {
           const s = document.createElement('script');
@@ -461,7 +478,11 @@
       window.PRODUCTS.forEach(p => {
         const cat = normalizeCategory(p.categoria) || 'Otros';
         if (!categories[cat]) categories[cat] = [];
-        const price = parsePrice(p.precio) * (1 + priceMod / 100);
+        
+        // Precio PDF = Precio Web FUNAZ (precio base * 1.10)
+        // No se agrega ningun markup extra.
+        const price = parsePrice(p.precio) * 1.10;
+
         categories[cat].push({
           name: p.nombre || '',
           price: price,
@@ -540,8 +561,16 @@
       }
       const fileName = `Catalogo_Funaz_${new Date().toISOString().slice(0,10)}.pdf`;
       doc.save(fileName);
+      
+      btnPdf.textContent = originalText;
+      btnPdf.disabled = false;
       alert('PDF generado perfecto');
     }
+
+    // Evento del botón: 6 filas x 6 columnas, precio "visto en pagina"
+    btnPdf.addEventListener('click', () => {
+      generatePDF(6, 6); 
+    });
 
     async function load() {
       try {
@@ -576,7 +605,6 @@
         updateColsToggleText();
         applyFilters();
 
-        // Logo con fallback
         const logoImg = document.getElementById('logoImg');
         const logoUrl = getImageUrl('logo.png');
         if (logoUrl) {
@@ -593,8 +621,6 @@
         empty.style.display = 'block';
       }
     }
-
-    console.log('%cPDF perfecto → generatePDF(6,6,20)', 'color: white; background: #063b11; padding: 20px; font-size: 24px; font-weight: bold');
 
     load();
   </script>
