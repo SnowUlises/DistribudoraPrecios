@@ -20,7 +20,7 @@
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     }
     * { box-sizing: border-box; outline: none; }
- 
+
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       margin: 0;
@@ -63,6 +63,20 @@
       align-items: center;
       gap: 6px;
     }
+    /* ESTILO PARA EL LINK DE PEDIDOS */
+    .order-link {
+        color: var(--primary);
+        font-weight: 700;
+        text-decoration: underline;
+        font-size: 15px;
+        margin-top: 4px;
+        transition: color 0.2s;
+    }
+    .order-link:hover {
+        color: #14532d; /* Verde más oscuro al pasar el mouse */
+        text-decoration: none;
+    }
+
     .wrap {
       max-width: 1200px;
       margin: 0 auto;
@@ -114,7 +128,7 @@
       background: var(--bg);
       border-color: var(--text-muted);
     }
- 
+
     .btn-action.active {
         background: var(--primary-light);
         color: var(--primary);
@@ -136,10 +150,10 @@
       overflow-y: auto;
       display: none;
     }
- 
+
     .dropdown-menu.show { display: block; }
     .dropdown-menu li { list-style: none; }
- 
+
     .dropdown-menu button {
       width: 100%;
       text-align: left;
@@ -272,10 +286,10 @@
       .search { order: 1; }
       .actions-row { display: flex; gap: 8px; order: 2; overflow-x: auto; padding-bottom: 4px; }
       .btn-action { white-space: nowrap; flex: 1; justify-content: center; }
-   
+
       .brand { padding: 0 10px; }
       .wrap { padding: 16px; margin: 0; }
-   
+
       /* Forzar 2 columnas en movil si no es muy pequeño */
       .grid { gap: 12px; }
       .card { padding: 10px; gap: 8px; }
@@ -297,6 +311,9 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
           Cristobal Colon 1740, San Juan
         </div>
+        <a href="https://distribuidorapedidos.onrender.com/index.html" class="order-link">
+            Haz tu pedido aquí
+        </a>
       </div>
     </div>
   </header>
@@ -346,12 +363,12 @@
       "PAPELES Y BOLSAS", "PEGAMENTOS", "PERFUMERIA", "REPELENTES", "ACCESORIOS",
       "SHAMPO Y ENJUAGUE", "TINTURAS NANTYR"
     ];
- 
+
     // --- ESTADO GLOBAL ---
     let PRODUCTS = [];
     let currentCategory = 'Todas';
     let currentCols = window.innerWidth <= 640 ? 2 : 4; // Auto-ajuste inicial
- 
+
     // --- DOM ---
     const grid = document.getElementById('grid');
     const emptyMsg = document.getElementById('empty');
@@ -377,7 +394,7 @@
       const { data } = supa.storage.from('imagenes').getPublicUrl(clean);
       return data.publicUrl;
     };
- 
+
     // Placeholder para carga lazy
     const PLACEHOLDER_IMG = "placeholder.png";
     // --- RENDERIZADO OPTIMIZADO ---
@@ -393,7 +410,7 @@
       list.forEach(p => {
         const article = document.createElement('article');
         article.className = 'card';
-     
+
         // Calculo precio
         const finalPrice = ((parsePrice(p.precio) * 1.10) * 0.97) * 1.10;
         const imgUrl = getImageUrl(p.imagen);
@@ -435,7 +452,7 @@
     async function loadData() {
       try {
         loadingMsg.style.display = 'block';
-     
+
         // 1. OPTIMIZACIÓN: Fetch recursivo pero solo columnas necesarias
         let allProducts = [];
         let from = 0;
@@ -490,7 +507,7 @@
       }
     }
     // --- INTERFAZ / EVENTOS ---
- 
+
     // Búsqueda con Debounce (para no filtrar en cada tecla si escribe rapido)
     let timeoutSearch;
     searchInput.addEventListener('input', () => {
@@ -501,7 +518,7 @@
     const setupDropdown = (btnId, menuId, buildFn) => {
       const btn = document.getElementById(btnId);
       const menu = document.getElementById(menuId);
-   
+
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const isOpen = menu.classList.contains('show');
@@ -569,11 +586,11 @@
     }
     document.getElementById('pdfBtn').addEventListener('click', async () => {
         if(!confirm("Generar PDF puede tardar unos segundos. ¿Continuar?")) return;
-     
+
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         let y = 10;
-     
+
         doc.setFontSize(16);
         doc.text("Lista de Precios - Distribuidora Funaz", 10, y);
         y += 10;
@@ -585,7 +602,7 @@
         if(currentCategory !== 'Todas') items = items.filter(p => (p.categoria || '').toUpperCase().includes(currentCategory.toUpperCase()));
         // Tabla simple
         let pageHeight = doc.internal.pageSize.height;
-     
+
         items.forEach((p, i) => {
             if (y > pageHeight - 10) {
                 doc.addPage();
@@ -593,7 +610,7 @@
             }
             const precio = formatMoney(((parsePrice(p.precio) * 1.10) * 0.97) * 1.10);
             const nombre = (p.nombre || 'Sin nombre').substring(0, 60);
-         
+
             doc.text(nombre, 10, y);
             doc.text(precio, 160, y);
             y += 7;
