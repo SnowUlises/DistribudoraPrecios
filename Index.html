@@ -405,14 +405,13 @@
         return;
       }
       emptyMsg.style.display = 'none';
-      // Usamos fragment para pintar todo de una sola vez (mejora performance DOM)
       const fragment = document.createDocumentFragment();
       list.forEach(p => {
         const article = document.createElement('article');
         article.className = 'card';
 
         // Calculo precio
-        const finalPrice = ((parsePrice(p.precio) * 1.10) * 0.97) * 1.10;
+        const finalPrice = ((parsePrice(p.precio) * 1.10) * 1.02);
         const imgUrl = getImageUrl(p.imagen);
         article.innerHTML = `
           <div class="thumb">
@@ -623,3 +622,4 @@
   </script>
 </body>
 </html>
+
